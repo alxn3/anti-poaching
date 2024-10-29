@@ -1,5 +1,10 @@
 import pyshark
+import json
 import requests
+import pandas as pd
+
+MCC_MNC_TABLE = 'mcc_mnc_lookup.csv'
+mcc_mnc_lookup = pd.read_csv("mcc_mnc_lookup.csv", index_col="MCC_MNC")
 
 # Scrape pcap for all cell towers
 cell_towers = []  # each element is a 4-tuple: cell identity, tracking area code, MCC, MNC
@@ -8,7 +13,9 @@ cap = pyshark.FileCapture('test.pcap')
 for packet in cap:
     if 'lte_rrc' in packet:
         rrc_layer = packet.lte_rrc
-        
+        print(rrc_layer.field_names)
+        exit()
+
         cellidentity_hex = rrc_layer.lte_rrc_cellidentity
         cellidentity = int(cellidentity_hex.replace(":", ""), 16)
         
@@ -23,14 +30,25 @@ for packet in cap:
                 visited_towers.add(tower_tuple)
                 cell_towers.append(tower_tuple)
 
-# Get cell tower's location
-cellid, tac, mcc, mnc = cell_towers[0]
-print(cell_towers[0])
+# Get location of one cell tower!
+cellid, tac, mcc, mnc = cell_towers[3]
+mcc_mnc_key = int(str(mcc) + str(mnc))
+print(cell_towers[3])
+print(mcc_mnc_lookup.loc[mcc_mnc_key, "CountryName"])
+print(mcc_mnc_lookup.loc[mcc_mnc_key, "Network"])
 
-# API_KEY = open('opencellid_api_key.txt', 'r').readline()
-# payload = f"key={API_KEY}&mcc={mcc}&mnc={mnc}&lac={tac}&cellid={cellid}"
-# url = f"https://opencellid.org/cell/get?{payload}"
-
-# print(url)
-# res = requests.post(url)
+# API_KEY = open('google_maps_api_key.txt', 'r').readline()
+# url = f"https://www.googleapis.com/geolocation/v1/geolocate?key={API_KEY}"
+payload = {
+    "radioType": "lte",
+    "cellTowers": [
+    {
+      "cellId": cellid,
+      "locationAreaCode": tac,
+      "mobileCountryCode": mcc,
+      "mobileNetworkCode": mnc
+    }
+  ]
+}
+# res = requests.post(url, json=payload)
 # print(res.text)
