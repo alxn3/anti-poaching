@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { MapLibre, GeoJSON, FillLayer, LineLayer, Popup, hoverStateFilter } from 'svelte-maplibre';
+	import { MapLibre, MapEvents, DefaultMarker, GeoJSON, FillLayer, LineLayer, Popup, hoverStateFilter } from 'svelte-maplibre';
 	import type { LngLatBounds } from 'maplibre-gl';
 
 	let layers: GeoJSON[3] | null = $state(null);
@@ -45,6 +45,16 @@
 				console.error(error);
 			});
 	});
+
+	let markers: {
+		lngLat: [number, number];
+	}[] = $state([
+		{
+			lngLat: [-80.424032921143, 37.22494287613821]
+		}
+	]);
+
+	let info: any = $state(null);
 </script>
 
 <MapLibre
@@ -78,19 +88,37 @@
 				id={`fill-${i}`}
 				paint={{
 					'fill-color': i % 3 === 0 ? '#e94444' : i % 3 === 1 ? '#44e944' : '#4444e9',
-					'fill-opacity': 0.025
+					'fill-opacity': 0.01
 				}}
 				interactive
 				manageHoverState
+				on:click={(e) => {
+					info = e.detail.features[0];
+				}}
 			>
-				<Popup let:data>
+				<!-- <Popup let:data>
 					{#if data && data.properties}
 						{#each Object.entries(data.properties) as [key, value]}
 							<p>{key}: {value}</p>
 						{/each}
 					{/if}
-				</Popup>
+				</Popup> -->
 			</FillLayer>
 		</GeoJSON>
 	{/each}
+	<MapEvents on:click={(e) => {
+		// if right click
+			markers = [...markers, { lngLat: e.detail.lngLat.toArray() }];
+	}}/>
+	{#each markers as marker}
+		<DefaultMarker {...marker} />
+	{/each}
 </MapLibre>
+
+<div class="absolute right-0 top-0 text-xs bg-white m-1 rounded-md p-2">
+	{#if info}
+		{#each Object.entries(info.properties) as [key, value]}
+			<p>{key}: {value}</p>
+		{/each}
+	{/if}
+</div>
