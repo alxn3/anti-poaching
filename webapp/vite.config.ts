@@ -20,9 +20,4 @@ export default defineConfig({
 			compiler: 'svelte'
 		})
 	]
-	// server: {
-	// 	proxy: {
-	// 		'/cellmapper': 'https://api.cellmapper.net/v6'
-	// 	}
-	// }
 });
