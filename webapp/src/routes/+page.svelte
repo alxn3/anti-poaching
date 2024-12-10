@@ -1,13 +1,58 @@
 <script lang="ts">
-	import { MapLibre, MapEvents, DefaultMarker, GeoJSON, FillLayer, LineLayer, Popup, hoverStateFilter } from 'svelte-maplibre';
+	import {
+		MapLibre,
+		MapEvents,
+		DefaultMarker,
+		GeoJSON,
+		FillLayer,
+		LineLayer,
+		Popup,
+		hoverStateFilter
+	} from 'svelte-maplibre';
 	import type { LngLatBounds } from 'maplibre-gl';
 
 	let layers: GeoJSON[3] | null = $state(null);
 	let bounds: LngLatBounds | null = $state(null);
 
+	let markers: {
+		mcc: number;
+		mnc: number;
+		lac: number;
+		cid: number;
+		lng: number;
+		lat: number;
+		speed: number;
+		timestamp: number;
+	}[] = $state([
+		{
+			mcc: 310,
+			mnc: 260,
+			lac: 100,
+			cid: 100,
+			lng:-80.424032921143,
+			lat: 37.22494287613821,
+			speed: 0,
+			timestamp: Date.now()
+		}
+	]);
+
 	$effect(() => {
 		const ws_url = new URL('/websocket', window.location.href).href;
 		const ws = new WebSocket(ws_url);
+		ws.onmessage = (event) => {
+			try {
+				const raw = JSON.parse(event.data);
+				console.log(raw);
+				const data = raw.data;
+				console.log(data);
+				if (raw.type === 'pins') {
+					markers = markers.concat(data);
+					console.log(markers);
+				}
+			} catch (e) {
+				console.log(event.data);
+			}
+		};
 	});
 
 	$effect(() => {
@@ -46,28 +91,20 @@
 			});
 	});
 
-	let markers: {
-		lngLat: [number, number];
-	}[] = $state([
-		{
-			lngLat: [-80.424032921143, 37.22494287613821]
-		}
-	]);
-
 	let info: any = $state(null);
 </script>
 
 <MapLibre
 	style="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-	class="absolute top-0 left-0 aspect-video h-screen w-full sm:max-h-full"
+	class="absolute left-0 top-0 aspect-video h-screen w-full sm:max-h-full"
 	standardControls
 	zoom={7}
 	center={[-80.424032921143, 37.22494287613821]}
-	on:moveend={(e) => {
-		bounds = e.detail.map.getBounds();
+	onmoveend={(e) => {
+		bounds = e.target.getBounds();
 	}}
-	on:load={(e) => {
-		bounds = e.detail.getBounds();
+	onload={(e) => {
+		bounds = e.getBounds();
 	}}
 >
 	{#each layers as layer, i}
@@ -106,16 +143,16 @@
 			</FillLayer>
 		</GeoJSON>
 	{/each}
-	<MapEvents on:click={(e) => {
+	<!-- <MapEvents on:click={(e) => {
 		// if right click
 			markers = [...markers, { lngLat: e.detail.lngLat.toArray() }];
-	}}/>
+	}}/> -->
 	{#each markers as marker}
-		<DefaultMarker {...marker} />
+		<DefaultMarker lngLat={[marker.lng, marker.lat]} />
 	{/each}
 </MapLibre>
 
-<div class="absolute right-0 top-0 text-xs bg-white m-1 rounded-md p-2">
+<div class="absolute right-0 top-0 m-1 rounded-md bg-white p-2 text-xs">
 	{#if info}
 		{#each Object.entries(info.properties) as [key, value]}
 			<p>{key}: {value}</p>
