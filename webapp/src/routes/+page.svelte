@@ -274,12 +274,12 @@
 		// if right click
 			markers = [...markers, { lngLat: e.detail.lngLat.toArray() }];
 	}}/> -->
-	{#each markers as marker}
+	<!-- {#each markers as marker}
 		<DefaultMarker lngLat={[marker.lng, marker.lat]} />
 	{/each}
 	<Marker lngLat={live}>
 		<div class="rounded-md bg-blue-500 p-1 text-white">🚗</div>
-	</Marker>
+	</Marker> -->
 	<!-- {#each cellTowers as tower}
 		<DefaultMarker lngLat={[tower['longitude'], tower['latitude']]} />
 	{/each} -->
@@ -434,7 +434,7 @@
 					})()}`}
 				/>
 				<Popup openOn="hover" closeOnClickInside>
-					<h1 class="font-bold text-lg">{MCC_MNC_LOOKUP[`${props.mcc}${props.net}`]?.Network}</h1>
+					<h1 class="text-lg font-bold">{MCC_MNC_LOOKUP[`${props.mcc}${props.net}`]?.Network}</h1>
 					<table class="w-40">
 						<tbody>
 							<tr>
@@ -481,31 +481,31 @@
 	</GeoJSON>
 </MapLibre>
 
-<div class="absolute bottom-0 left-0 mb-10 ml-2 w-64 rounded-md bg-white p-2 text-xs">
-	<div class="flex justify-between text-lg">
-		<h1>Header</h1>
-		<div class="inline-block h-8 w-5">
-			{#if hidden}
-				<button
-					onclick={() => {
-						hidden = false;
-					}}
-				>
-					<IconChevonUp />
-				</button>
-			{:else}
-				<button
-					onclick={() => {
-						hidden = true;
-					}}
-				>
-					<IconChevonDown />
-				</button>
-			{/if}
+{#if info && info.properties}
+	<div class="absolute bottom-0 left-0 mb-10 ml-2 w-64 rounded-md bg-white p-2 text-xs">
+		<div class="flex justify-between text-lg">
+			<h1>Info</h1>
+			<div class="inline-block h-8 w-5">
+				{#if hidden}
+					<button
+						onclick={() => {
+							hidden = false;
+						}}
+					>
+						<IconChevonUp />
+					</button>
+				{:else}
+					<button
+						onclick={() => {
+							hidden = true;
+						}}
+					>
+						<IconChevonDown />
+					</button>
+				{/if}
+			</div>
 		</div>
-	</div>
-	<div class={`${!hidden || 'hidden'}`}>
-		{#if info && info.properties}
+		<div class={`${!hidden || 'hidden'}`}>
 			<table class="w-full table-fixed">
 				<tbody>
 					<tr>
@@ -535,9 +535,9 @@
 					</tr>
 				</tbody>
 			</table>
-		{/if}
+		</div>
 	</div>
-</div>
+{/if}
 
 <!-- FID: 1416
 GEOID_1:
